@@ -116,21 +116,33 @@ special_characters = {
 }
 
 def replaceFormatting(text):
-    old_char = 'oops'
-    new_char = 'oops'
-    for character in text:
-        if character == 0:
-            old_char = '\x00'
+    text_out = ''
+    for i, character in enumerate(text):
+        if character == b'\x00':
             new_char = '\n'
-        elif character == 0x7e:
-            old_char = '~'
+        elif character == b'\x7e':
             new_char = '<var>'
-        elif character == 0x81:
-            old_char = '\x81'
+        elif character == b'\x80':
+            new_char = '<unk x80>'
+        elif character == b'\x81':
             new_char = '<Z>'
+        elif character == b'\x82':
+            new_char = '<RIGHT_C>'
+        elif character == b'\x83':
+            new_char = '<UP_C>'
+        elif character == b'\x84':
+            new_char = '<DOWN_C>'
+        elif character == b'\x85':
+            new_char = '<LEFT_C>'
+        elif character == b'\x86':
+            new_char = '<B>'
+        elif character == b'\x87':
+            new_char = '<A>'
+        else:
+            new_char = text[i].decode('utf8')
+        text_out = text_out + new_char
 
-        text = str(text).replace(old_char, new_char)
-    return text
+    return text_out
 
 def dumpTextFile(index):
     try:
@@ -160,9 +172,11 @@ def dumpTextFile(index):
                             character_head = character_head
                         special_character = "Character Head: {}".format(character_head)
                     string_length = int.from_bytes(text_bin.read(1), "big")
-                    raw_text_bytes = text_bin.read(string_length)
-                    formatted_text_bytes = replaceFormatting(raw_text_bytes)
-                    text_out = text_out + special_character + '\n\t' + formatted_text_bytes + '\n'
+                    text_buffer = []
+                    for i in range(string_length):
+                        text_buffer.append(text_bin.read(1))
+                    formatted_text = replaceFormatting(text_buffer)
+                    text_out = text_out + special_character + '\n\t' + formatted_text
                 lower_dialog_count = int.from_bytes(text_bin.read(1), "big")
                 text_out = text_out + "\n\n{}\n".format(lower_dialog_count)
                 if lower_dialog_count != 0 or lower_dialog_count is not None:
@@ -191,7 +205,11 @@ def dumpTextFile(index):
                                 character_head = character_head
                             special_character = "Character Head: {}".format(character_head)
                         string_length = int.from_bytes(text_bin.read(1), "big")
-                        text_out = text_out + special_character + '\n\t' + str(text_bin.read(string_length)) + '\n'
+                        text_buffer = []
+                        for i in range(string_length):
+                            text_buffer.append(text_bin.read(1))
+                        formatted_text = replaceFormatting(text_buffer)
+                        text_out = text_out + special_character + '\n\t' + formatted_text
                 text_file.write(text_out)
     except UnicodeEncodeError:
         os.remove('test_output/decompressed/text/{}.txt'.format(hex(index)[2:]))
