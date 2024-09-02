@@ -123,7 +123,7 @@ def replaceFormatting(text):
         elif character == b'\x7e':
             new_char = '<var>'
         elif character == b'\x80':
-            new_char = '<unk x80>'
+            new_char = '<R>'
         elif character == b'\x81':
             new_char = '<Z>'
         elif character == b'\x82':

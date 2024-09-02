@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import math
 
 def n64_cic_nus_6105(challenge, length):
@@ -124,5 +123,4 @@ def decryptMapSetup(index, encryptedBytes, size):
     for i in range(size):
         decryptedBytes.append(encryptedBytes[i] ^ cicValue[i % 0xE])
 
->>>>>>> origin/master
     return bytes(decryptedBytes)
