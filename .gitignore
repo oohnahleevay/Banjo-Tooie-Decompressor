@@ -10,3 +10,5 @@
 /Path.csv
 /test.bin
 /rn64crc.exe
+__pycache__/
+map_setup_logging/
