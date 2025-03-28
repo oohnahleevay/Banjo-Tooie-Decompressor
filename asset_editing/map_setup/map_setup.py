@@ -9,11 +9,13 @@ main_folder = os.path.dirname(os.path.abspath("..."))
 sys.path.append(main_folder)
 
 import json
-from enum import StrEnum, auto
+from enum import IntEnum, StrEnum, auto, unique
 
 from asset_editing.generic_file import Generic_Bin_File_Class
 from asset_editing.map_setup.map_setup_asset_ids import \
     MapSetupAssetId
+from asset_editing.map_setup.object_names import \
+    CategoryEnum, OBJECT_NAMES
 
 ###########################
 ##### LOCAL CONSTANTS #####
@@ -21,11 +23,17 @@ from asset_editing.map_setup.map_setup_asset_ids import \
 
 LEVEL_SETUP_EXT:str = ".bin"
 
+TEST_OUTPUT_DIR:str = 'test_output/'
+DECOMPRESSED_DIR:str = f'{TEST_OUTPUT_DIR}decompressed/'
+MAP_SETUP_LOGGING_DIR:str = "asset_editing/map_setup/map_setup_logging/"
+
+@unique
 class MapSetupEnums(StrEnum):
     CAMERAS = auto()
     OBJECTS = auto()
     UNKNOWN = auto()
 
+@unique
 class CameraEnums(StrEnum):
     CAMERA_ID = auto()
     CAMERA_TYPE = auto()
@@ -72,7 +80,9 @@ class CameraEnums(StrEnum):
     SECTION_13 = auto()
     SECTION_13_LINE_1 = auto()
 
+@unique
 class ObjectEnum(StrEnum):
+    OBJECT_NAME = auto()
     X_POSITION = auto()
     Y_POSITION = auto()
     Z_POSITION = auto()
@@ -80,8 +90,8 @@ class ObjectEnum(StrEnum):
     CATEGORY = auto()
     UNK_6_BIT_0 = auto()
     ACTOR_ID = auto()
-    MARKER_ID = auto()
-    PAD_B = auto()
+    UNK_A = auto()
+    UNK_B = auto()
     UNK_C_BIT_15 = auto() # Flag?
     SCALE = auto()
     UNK_10 = auto()
@@ -89,6 +99,7 @@ class ObjectEnum(StrEnum):
     UNK_12 = auto()
     UNK_13 = auto()
 
+@unique
 class UnknownEnum(StrEnum):
     UNKNOWN = auto()
 
@@ -100,12 +111,11 @@ def create_map_setup_logging_dir():
     '''
     PyDoc
     '''
-    directory_path = "asset_editing/map_setup/map_setup_logging/"
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
-        print(f"The directory '{directory_path}' has been created.")
+    if not os.path.exists(MAP_SETUP_LOGGING_DIR):
+        os.makedirs(MAP_SETUP_LOGGING_DIR)
+        print(f"The directory '{MAP_SETUP_LOGGING_DIR}' has been created.")
     else:
-        print(f"The directory '{directory_path}' already exists.")
+        print(f"The directory '{MAP_SETUP_LOGGING_DIR}' already exists.")
 
 #####################
 ##### MAP SETUP #####
@@ -821,9 +831,9 @@ class Map_Setup(Generic_Bin_File_Class):
         current_index += 2
         actor_id:int = self._read_bytes_as_int(current_index, 2)
         current_index += 2
-        marker_id:int = self._read_bytes_as_int(current_index, 1)
+        unk_A:int = self._read_bytes_as_int(current_index, 1)
         current_index += 1
-        byte_B_u8:int = self._read_bytes_as_int(current_index, 1)
+        unk_B:int = self._read_bytes_as_int(current_index, 1)
         current_index += 1
         byte_C_u32_bitfield:list = [
             (ObjectEnum.UNK_C_BIT_15, 9),
@@ -847,8 +857,8 @@ class Map_Setup(Generic_Bin_File_Class):
             ObjectEnum.CATEGORY: byte_6_u16_dict[ObjectEnum.CATEGORY],
             ObjectEnum.UNK_6_BIT_0: byte_6_u16_dict[ObjectEnum.UNK_6_BIT_0],
             ObjectEnum.ACTOR_ID: actor_id,
-            ObjectEnum.MARKER_ID: marker_id,
-            ObjectEnum.PAD_B: byte_B_u8,
+            ObjectEnum.UNK_A: unk_A,
+            ObjectEnum.UNK_B: unk_B,
             ObjectEnum.UNK_C_BIT_15: byte_C_u32_dict[ObjectEnum.UNK_C_BIT_15],
             ObjectEnum.SCALE: byte_C_u32_dict[ObjectEnum.SCALE],
             ObjectEnum.UNK_10: unk_10,
@@ -856,8 +866,26 @@ class Map_Setup(Generic_Bin_File_Class):
             ObjectEnum.UNK_12: unk_12,
             ObjectEnum.UNK_13: unk_13,
         }
+        object_name:str = self._determinte_object_name(object_info)
+        object_info[ObjectEnum.OBJECT_NAME] = object_name
         self._objects.append(object_info)
         return current_index
+
+    def _determinte_object_name(self, object_info:dict):
+        '''
+        PyDoc
+        '''
+        object_name:str = "Unknown"
+        category:int = object_info[ObjectEnum.CATEGORY]
+        category_name:CategoryEnum = CategoryEnum.name_for_value(category)
+        if(not category_name):
+            return object_name
+        actor_id:str = object_info[ObjectEnum.ACTOR_ID]
+        object_sub_name:str = OBJECT_NAMES[category].get(actor_id)
+        if(not object_sub_name):
+            object_sub_name:str = "Unknown"
+        object_name:str = f"{category_name} - {object_sub_name}"
+        return object_name
 
     ###################
     ##### UNKNOWN #####
@@ -905,13 +933,11 @@ class Map_Setup(Generic_Bin_File_Class):
 
 if __name__ == '__main__':
     create_map_setup_logging_dir()
-    bin_file_dir:str = "test_output/decompressed/"
-    logging_file_dir:str = "asset_editing/map_setup/map_setup_logging/"
     for asset_id in MapSetupAssetId:
         asset_id_name:str = asset_id.name
         asset_id_value:int = asset_id.value
         print(f"{hex(asset_id_value)} - {asset_id_name}")
-        map_obj = Map_Setup(bin_file_dir, asset_id)
+        map_obj = Map_Setup(DECOMPRESSED_DIR, asset_id)
         asset_id_str:str = map_obj._convert_int_to_str(asset_id.value, 4)
-        file_path:str = f"{logging_file_dir}{asset_id_str}-{asset_id_name}.json"
+        file_path:str = f"{MAP_SETUP_LOGGING_DIR}{asset_id_str}-{asset_id_name}.json"
         map_obj.print_map_setup(file_path)

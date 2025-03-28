@@ -2,12 +2,12 @@ from enum import IntEnum, auto, unique
 
 @unique
 class MapSetupAssetId(IntEnum):
+
     @classmethod
     def name_for_value(cls, value):
         if value in cls._value2member_map_:
             return cls(value).name
         return None
-
 
     CUTSCENE_TWO_YEARS_HAVE_PASSED = 0x09F6
     CUTSCENE_DRILL_STARTS = auto()
@@ -245,4 +245,3 @@ class MapSetupAssetId(IntEnum):
     JOLLY_ROGERS_LAGOON_MAIN = auto()
     JOLLY_ROGERS_LAGOON_ATLANTIS = auto()
     JOLLY_ROGERS_LAGOON_SEA_BOTTOM = auto()
-    
