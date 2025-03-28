@@ -1,6 +1,20 @@
+###################
+##### IMPORTS #####
+###################
+
 import os
 
-character_heads = {
+#####################
+##### CONSTANTS #####
+#####################
+
+TEST_OUTPUT_DIR:str = 'test_output/'
+DECOMPRESSED_DIR:str = f'{TEST_OUTPUT_DIR}decompressed/'
+TEXT_DIR:str = f'{DECOMPRESSED_DIR}text/'
+
+TEXT_FILE_HEADER:int = 0x010300
+
+CHARACTER_HEADS:dict = {
     13: 'Clean Skivvy',
     14: 'Dirty Skivvy',
     21: 'Unga Bunga',
@@ -101,10 +115,9 @@ character_heads = {
     242: 'Blobbelda',
     243: 'Klungo',
     244: 'Grunty',
-
 }
 
-special_characters = {
+SPECIAL_CHARACTERS:dict = {
     2: '<Open Yes/No Prompt>',
     3: '<Unknown 3>',
     4: '<Wait Button Press>',
@@ -115,43 +128,54 @@ special_characters = {
     11: '<Unknown 11>'
 }
 
-def replaceFormatting(text):
+FORMATTING_DICT:dict = {
+    b'\x00': '\n',
+    b'\x7e': '<var>',
+    b'\x80': '<R>',
+    b'\x81': '<Z>',
+    b'\x82': '<RIGHT_C>',
+    b'\x83': '<UP_C>',
+    b'\x84': '<DOWN_C>',
+    b'\x85': '<LEFT_C>',
+    b'\x86': '<B>',
+    b'\x87': '<A>',
+}
+
+#####################
+##### FUNCTIONS #####
+#####################
+
+def convert_int_to_str(int_val:int, leading_zero_count:int):
+    '''
+    PyDoc
+    '''
+    int_str:str = str(hex(int_val))[2:]
+    if(int_val < 0):
+        int_str = int_str[1:]
+    str_val:str = int_str.zfill(leading_zero_count).upper()
+    if(int_val < 0):
+        str_val = f"-{str_val}"
+    return str_val
+
+def replace_formatting(text):
     text_out = ''
     for i, character in enumerate(text):
-        if character == b'\x00':
-            new_char = '\n'
-        elif character == b'\x7e':
-            new_char = '<var>'
-        elif character == b'\x80':
-            new_char = '<R>'
-        elif character == b'\x81':
-            new_char = '<Z>'
-        elif character == b'\x82':
-            new_char = '<RIGHT_C>'
-        elif character == b'\x83':
-            new_char = '<UP_C>'
-        elif character == b'\x84':
-            new_char = '<DOWN_C>'
-        elif character == b'\x85':
-            new_char = '<LEFT_C>'
-        elif character == b'\x86':
-            new_char = '<B>'
-        elif character == b'\x87':
-            new_char = '<A>'
+        if character in FORMATTING_DICT:
+            new_char = FORMATTING_DICT[character]
         else:
             new_char = text[i].decode('utf8')
         text_out = text_out + new_char
-
     return text_out
 
-def dumpTextFile(index):
+def dump_text_file(index):
     try:
-        with open("test_output/decompressed/{}.bin".format(hex(index)[2:]), "rb") as text_bin:
-            with open('test_output/decompressed/text/{}.txt'.format(hex(index)[2:]), 'w') as text_file:
+        index_hex_str:str = convert_int_to_str(index, 4)
+        with open(f"{DECOMPRESSED_DIR}{index_hex_str}.bin", "rb") as text_bin:
+            with open(f"{TEXT_DIR}{index_hex_str}.txt", 'w') as text_file:
                 text_header = int.from_bytes(text_bin.read(3), "big")
                 if text_header != 0x010300:
                     text_file.close()
-                    os.remove('test_output/decompressed/text/{}.txt'.format(hex(index)[2:]))
+                    os.remove(f"{TEXT_DIR}{index_hex_str}.txt")
                     return
                 upper_dialog_count = int.from_bytes(text_bin.read(1), "big")
                 text_out = '{}\n{}\n'.format(hex(text_header), upper_dialog_count)
@@ -159,15 +183,15 @@ def dumpTextFile(index):
                     character_head = int.from_bytes(text_bin.read(1), "big")
                     if character_head <= 0x11:
                         try:
-                            character_head = special_characters[character_head]
+                            character_head = SPECIAL_CHARACTERS[character_head]
                         except KeyError:
                             character_head = character_head
                         special_character = "Special Character: {}".format(character_head)
                         if character_head == '<Unknown 3>':
-                            special_character = special_character + '\nCharacter Head: {}'.format(character_heads[int.from_bytes(text_bin.read(1), 'big')])
+                            special_character = special_character + '\nCharacter Head: {}'.format(CHARACTER_HEADS[int.from_bytes(text_bin.read(1), 'big')])
                     else:
                         try:
-                            character_head = character_heads[character_head]
+                            character_head = CHARACTER_HEADS[character_head]
                         except KeyError:
                             character_head = character_head
                         special_character = "Character Head: {}".format(character_head)
@@ -175,7 +199,7 @@ def dumpTextFile(index):
                     text_buffer = []
                     for i in range(string_length):
                         text_buffer.append(text_bin.read(1))
-                    formatted_text = replaceFormatting(text_buffer)
+                    formatted_text = replace_formatting(text_buffer)
                     text_out = text_out + special_character + '\n\t' + formatted_text
                 lower_dialog_count = int.from_bytes(text_bin.read(1), "big")
                 text_out = text_out + "\n\n{}\n".format(lower_dialog_count)
@@ -184,23 +208,23 @@ def dumpTextFile(index):
                         character_head = int.from_bytes(text_bin.read(1), "big")
                         if character_head <= 0x11:
                             try:
-                                character_head = special_characters[character_head]
+                                character_head = SPECIAL_CHARACTERS[character_head]
                             except KeyError:
                                 character_head = character_head
                             special_character = "Special Character: {}".format(character_head)
                             if character_head == '<Unknown 3>':
                                 character_head = int.from_bytes(text_bin.read(1), 'big')
                                 try:
-                                    character_head = character_heads[character_head]
+                                    character_head = CHARACTER_HEADS[character_head]
                                 except KeyError:
                                     try:
-                                        character_head = special_characters[character_head]
+                                        character_head = SPECIAL_CHARACTERS[character_head]
                                     except KeyError:
                                         character_head = character_head
                                 special_character = special_character + '\nCharacter Head: {}'.format(character_head)
                         else:
                             try:
-                                character_head = character_heads[character_head]
+                                character_head = CHARACTER_HEADS[character_head]
                             except KeyError:
                                 character_head = character_head
                             special_character = "Character Head: {}".format(character_head)
@@ -208,9 +232,9 @@ def dumpTextFile(index):
                         text_buffer = []
                         for i in range(string_length):
                             text_buffer.append(text_bin.read(1))
-                        formatted_text = replaceFormatting(text_buffer)
+                        formatted_text = replace_formatting(text_buffer)
                         text_out = text_out + special_character + '\n\t' + formatted_text
                 text_file.write(text_out)
     except UnicodeEncodeError:
-        os.remove('test_output/decompressed/text/{}.txt'.format(hex(index)[2:]))
+        os.remove(f"{TEXT_DIR}{index_hex_str}.txt")
         return

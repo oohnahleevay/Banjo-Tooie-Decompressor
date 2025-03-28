@@ -137,7 +137,7 @@ class Generic_Bin_File_Class():
         '''
         PyDoc
         '''
-        asset_id_str:str = self._convert_int_to_str(asset_id, 0)
+        asset_id_str:str = self._convert_int_to_str(asset_id, 4)
         file_path:str = f"{file_dir}{asset_id_str}{file_ext}"
         return file_path
 
