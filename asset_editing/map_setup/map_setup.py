@@ -92,7 +92,7 @@ class ObjectEnum(StrEnum):
     ACTOR_ID = auto()
     UNK_A = auto()
     UNK_B = auto()
-    UNK_C_BIT_15 = auto() # Flag?
+    UNK_C_BIT_15 = auto() # Selector?
     SCALE = auto()
     UNK_10 = auto()
     UNK_11 = auto()
