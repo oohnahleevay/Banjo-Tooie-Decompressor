@@ -17,18 +17,26 @@ class CategoryEnum(IntEnum):
             return cls(value).name
         return None
 
-    CATEGORY_4 = 0x04 # Claw Clamber End?
+    CATEGORY_0 = 0x00
+    #
+    CATEGORY_3 = 0x03
+    CATEGORY_4 = auto() # Claw Clamber End?
     LOADING_ZONE = auto()
     CATEGORY_6 = auto() # Collision Models - Collectables, Baddies?
     CATEGORY_7 = auto()
     CATEGORY_8 = auto() # Paths - Claw Clamber Boot Prints, Inserting Ice Key?
     CATEGORY_9 = auto() # Spheres - Enemy Boundary?
+    #
+    CATEGORY_B = 0x0B
+    CATEGORY_C = auto()
 
 ########################
 ##### OBJECT NAMES #####
 ########################
 
 OBJECT_NAMES:dict = {
+    CategoryEnum.CATEGORY_0: {},
+    CategoryEnum.CATEGORY_3: {},
     CategoryEnum.CATEGORY_4: {},
     CategoryEnum.LOADING_ZONE: {
         1: 'CUTSCENE_TWO_YEARS_HAVE_PASSED',
@@ -402,4 +410,6 @@ OBJECT_NAMES:dict = {
     CategoryEnum.CATEGORY_7: {},
     CategoryEnum.CATEGORY_8: {},
     CategoryEnum.CATEGORY_9: {},
+    CategoryEnum.CATEGORY_B: {},
+    CategoryEnum.CATEGORY_C: {},
 }
