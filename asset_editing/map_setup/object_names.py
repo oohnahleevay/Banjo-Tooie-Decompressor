@@ -22,7 +22,7 @@ class CategoryEnum(IntEnum):
     CATEGORY_3 = 0x03
     CATEGORY_4 = auto() # Claw Clamber End?
     LOADING_ZONE = auto()
-    CATEGORY_6 = auto() # Collision Models - Collectables, Baddies?
+    CATEGORY_6 = auto() # Collision Models/State Machines? - Collectables, Baddies?
     CATEGORY_7 = auto()
     CATEGORY_8 = auto() # Paths - Claw Clamber Boot Prints, Inserting Ice Key?
     CATEGORY_9 = auto() # Spheres - Enemy Boundary?
@@ -340,6 +340,7 @@ OBJECT_NAMES:dict = {
         529: "Beehive",
         538: "Turbo Trainers",
         539: "Mega Glowbo",
+        550: "Mingy Jongo Spawn?",
         553: "Honeycomb",
         558: "Wading Boots",
         564: "Flight Pad",
@@ -367,6 +368,7 @@ OBJECT_NAMES:dict = {
         923: "Bargasaurus (Stegosaurus Enemy)",
         940: "Torch Fire",
         972: "Van Door",
+        975: "Brown Boulder (Breakable With Empty Honeycomb)",
         979: "Electric Fence",
         987: "Springy Step Shoes",
         993: "Mildred (Ice Cube Baddie)",

@@ -939,5 +939,5 @@ if __name__ == '__main__':
         print(f"{hex(asset_id_value)} - {asset_id_name}")
         map_obj = Map_Setup(DECOMPRESSED_DIR, asset_id)
         asset_id_str:str = map_obj._convert_int_to_str(asset_id.value, 4)
-        file_path:str = f"{MAP_SETUP_LOGGING_DIR}{asset_id_str}-{asset_id_name}.json"
+        file_path:str = f"{MAP_SETUP_LOGGING_DIR}{asset_id_name}.json"
         map_obj.print_map_setup(file_path)
